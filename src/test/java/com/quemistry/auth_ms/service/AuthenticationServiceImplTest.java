@@ -63,6 +63,6 @@ public class AuthenticationServiceImplTest {
 
         var result = authenticationService.getAccessToken(tokenRequest);
         tokenResponse.setEmail("testUser@email.com");
-        Assertions.assertEquals(result, result );
+        Assertions.assertEquals(tokenResponse, result );
     }
 }
