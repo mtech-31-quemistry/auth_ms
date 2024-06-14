@@ -8,10 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/auth")
@@ -26,7 +23,7 @@ public class AuthenticationController {
 
          //create cookie and return code with response
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("quemistry_session=%s; Max-Age=86400; Path=/; HttpOnly",tokenResponse.getAccessToken()));
+        headers.add("Set-Cookie", String.format("quemistry_session=%s; Max-Age=86400; Path=/; HttpOnly",tokenResponse));
 
         if(tokenResponse == null)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -35,5 +32,11 @@ public class AuthenticationController {
         user.setEmail(tokenResponse.getEmail());
 
          return ResponseEntity.status(HttpStatus.OK).headers(headers).body(user);
+    }
+
+    @PostMapping("SignOut")
+    public ResponseEntity signOut(){
+        //System.out.println(token.getEmail());
+        return ResponseEntity.ok("Logout");
     }
 }

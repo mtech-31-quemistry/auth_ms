@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -20,11 +21,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${quemistry.cognito.url}")
     private String QUEMISTRY_COGNITO_URL;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
     @Override
     public TokenResponse getAccessToken(TokenRequest request) {
-        final String tokenUri = QUEMISTRY_COGNITO_URL+"/oauth2/token";
+        final String tokenUri = "https://quemistry.auth.ap-southeast-1.amazoncognito.com/oauth2/token";
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", MediaType.APPLICATION_FORM_URLENCODED.toString());
 
