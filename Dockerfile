@@ -27,5 +27,5 @@ COPY --from=jre-build /javaruntime $JAVA_HOME
 COPY --from=project-build /usr/share/auth_ms.jar .
 COPY --from=project-build /usr/share/application.yml .
 
-EXPOSE 80
+EXPOSE 8080
 CMD ["java", "-jar", "auth_ms.jar"]
