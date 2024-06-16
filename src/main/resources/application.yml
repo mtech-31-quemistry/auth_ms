@@ -1,3 +1,5 @@
 spring:
   application:
     name: auth_ms
+server:
+  port: 80
