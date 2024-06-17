@@ -1,9 +1,10 @@
 package com.quemistry.auth_ms.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quemistry.auth_ms.config.RedisConfig;
+import com.quemistry.auth_ms.config.RestClientConfig;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
+import com.quemistry.auth_ms.model.UserProfile;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -11,14 +12,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.net.URISyntaxException;
-
 @WebMvcTest(AuthenticationService.class)
+@ContextConfiguration(classes = {RestClientConfig.class, RedisConfig.class})
 public class AuthenticationServiceImplTest {
 
     @Value("${quemistry.cognito.url}")
@@ -27,11 +29,15 @@ public class AuthenticationServiceImplTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private RedisTemplate redisTemplate;
+
     @InjectMocks
     private AuthenticationServiceImpl authenticationService;
 
+
    @Test
-    void givenGetAccessToken_Success() throws Exception{
+    void givenGetAccessToken_Success(){
         TokenResponse tokenResponse = new TokenResponse();
 
         //idtoken with email set as testUser@email.com
@@ -39,13 +45,14 @@ public class AuthenticationServiceImplTest {
 
         String tokenUri = "https://quemistry.auth.ap-southeast-1.amazoncognito.com/oauth2/token";
 
-        ObjectMapper mapper = new ObjectMapper();
-
         TokenRequest tokenRequest = new TokenRequest();
         tokenRequest.setClientId("testclientId");
         tokenRequest.setAuthCode("testAuthCode");
         tokenRequest.setCodeVerifier("testCodeVerifier");
         tokenRequest.setRedirectUrl("testUrl");
+
+       UserProfile user = new UserProfile();
+       user.setEmail("testUser@email.com");
 
        HttpHeaders headers = new HttpHeaders();
        headers.add("Content-Type", MediaType.APPLICATION_FORM_URLENCODED.toString());
@@ -59,10 +66,9 @@ public class AuthenticationServiceImplTest {
        HttpEntity<MultiValueMap<String, String>> formEntity = new HttpEntity<>(formData, headers);
 
        Mockito.when(restTemplate.postForEntity(tokenUri, formEntity, TokenResponse.class))
-               .thenReturn(new ResponseEntity(tokenResponse, HttpStatus.OK));
-
+               .thenReturn(new ResponseEntity<>(tokenResponse, HttpStatus.OK));
         var result = authenticationService.getAccessToken(tokenRequest);
         tokenResponse.setEmail("testUser@email.com");
-        Assertions.assertEquals(tokenResponse, result );
+        Assertions.assertEquals(user.getEmail(), result.getEmail() );
     }
 }

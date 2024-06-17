@@ -4,29 +4,44 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.quemistry.auth_ms.model.UserProfile;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
+@Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Value("${quemistry.cognito.url}")
     private String QUEMISTRY_COGNITO_URL;
 
-    @Autowired
-    private RestTemplate restTemplate;
+    @Value("${quemistry.session.timeout}")
+    private int SESSION_TIMEOUT;
+
+    private final RestTemplate restTemplate;
+
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public AuthenticationServiceImpl(RestTemplate restTemplate, RedisTemplate<String, Object> redisTemplate) {
+        this.restTemplate = restTemplate;
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
-    public TokenResponse getAccessToken(TokenRequest request) {
+    public UserProfile getAccessToken(TokenRequest request) {
         final String tokenUri = "https://quemistry.auth.ap-southeast-1.amazoncognito.com/oauth2/token";
+        UserProfile user = null;
 
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-Type", MediaType.APPLICATION_FORM_URLENCODED.toString());
@@ -49,15 +64,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 Map<String, Object> map = mapper.readValue(payload, new TypeReference<>() {});
-                response.getBody().setEmail((String)map.get("email"));
+                //creates session id as key and store user profile and access tokens info in redis
+                user = new UserProfile();
+                user.setSessionId(UUID.randomUUID().toString());
+                user.setEmail((String)map.get("email"));
+
+                redisTemplate.opsForValue().set(user.getSessionId()+"_profile", user, Duration.ofSeconds(SESSION_TIMEOUT));
+                redisTemplate.opsForValue().set(user.getSessionId()+"_tokens", response.getBody(), Duration.ofSeconds(SESSION_TIMEOUT));
             }
             catch (Exception ex) {
-                System.err.println("Error reading id token in getAccessToken");
-                System.err.println(ex.getStackTrace());
+                log.error("Error reading and saving session in getAccessToken",ex);
             }
 
-            //store response in redis cache
-            return response.getBody();
+            return user;
         }
         else{
             //log error
@@ -65,6 +84,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         //store token in redis cache
     }
-
 
 }

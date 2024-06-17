@@ -11,9 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -46,13 +47,13 @@ public class AuthenticationControllerTest {
 
         user = new UserProfile();
         user.setEmail("testUser@email.com");
+        user.setSessionId(UUID.randomUUID().toString());
     }
     @Test
     void givenGetAccessToken_Success() throws Exception{
 
-        given(authenticationService.getAccessToken(tokenRequest)).willReturn(tokenResponse);
+        given(authenticationService.getAccessToken(tokenRequest)).willReturn(user);
         ObjectMapper mapper = new ObjectMapper();
-
 
         var result = mockMvc.perform(post("/v1/auth")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -68,12 +69,15 @@ public class AuthenticationControllerTest {
     @Test
     void givenSignOut_Success() throws Exception{
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("quemistry_session=%s; Max-Age=86400; Path=/; HttpOnly",tokenResponse));
+        ObjectMapper mapper = new ObjectMapper();
 
-            mockMvc.perform(post("/v1/auth/SignOut")
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("QUESESSION",mapper.writeValueAsString(tokenResponse) );
+        cookie.setHttpOnly(true);
+        cookie.setPath("/");
+
+            mockMvc.perform(post("/v1/auth/signout")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .headers(headers))
+                            .cookie(cookie))
                     .andExpect(status().isOk());
     }
 }

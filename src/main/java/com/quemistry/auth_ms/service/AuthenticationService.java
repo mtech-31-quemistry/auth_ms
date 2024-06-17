@@ -1,8 +1,8 @@
 package com.quemistry.auth_ms.service;
 
 import com.quemistry.auth_ms.model.TokenRequest;
-import com.quemistry.auth_ms.model.TokenResponse;
+import com.quemistry.auth_ms.model.UserProfile;
 
 public interface AuthenticationService {
-    TokenResponse getAccessToken(TokenRequest request);
+    UserProfile getAccessToken(TokenRequest request);
 }

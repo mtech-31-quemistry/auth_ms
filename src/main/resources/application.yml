@@ -1,5 +1,14 @@
 spring:
   application:
     name: auth_ms
+  data:
+    redis:
+      host: clustercfg.quemistry.vrbbrp.apse1.cache.amazonaws.com
+      port: 6379
+
 server:
   port: 80
+
+quemistry:
+  cognito:
+    url: https://quemistry.auth.ap-southeast-1.amazoncognito.com
