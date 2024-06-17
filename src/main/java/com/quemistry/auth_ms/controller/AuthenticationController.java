@@ -1,5 +1,6 @@
 package com.quemistry.auth_ms.controller;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
@@ -10,12 +11,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/v1/auth")
 public class AuthenticationController {
 
     @Autowired
     private AuthenticationService authenticationService;
+
+    @GetMapping("health")
+    public ResponseEntity health(){
+        Map<String, String> responseBody = new HashMap<>();
+        responseBody.put("service", "auth");
+        responseBody.put("status", "UP");
+        return ResponseEntity.status(HttpStatus.OK).body(responseBody);
+    }
 
     @PostMapping()
     public ResponseEntity<UserProfile> getAccess(@RequestBody TokenRequest request){
@@ -39,4 +51,5 @@ public class AuthenticationController {
         //System.out.println(token.getEmail());
         return ResponseEntity.ok("Logout");
     }
+
 }
