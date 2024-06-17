@@ -1,6 +1,5 @@
 package com.quemistry.auth_ms.controller;
 
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
