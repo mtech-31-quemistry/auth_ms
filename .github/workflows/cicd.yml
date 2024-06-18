@@ -99,8 +99,8 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: aws/task-definition.json
-          container-name: service
-          image: latest
+          container-name: auth-ms
+          image: ${{ env.IMAGE_NAME }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
