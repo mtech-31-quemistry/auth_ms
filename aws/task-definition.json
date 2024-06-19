@@ -1,5 +1,5 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:730335183958:task-definition/quemistry-auth-ms:5",
+    "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:730335183958:task-definition/quemistry-auth-ms:10",
     "containerDefinitions": [
         {
             "name": "auth-ms",
@@ -18,10 +18,22 @@
             ],
             "essential": true,
             "environment": [],
-            "environmentFiles": [],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
+            "secrets": [
+                {
+                    "name": "REDIS_HOST",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/redis/url"
+                },
+                {
+                    "name": "REDIS_PORT",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/redis/port"
+                },
+                {
+                    "name": "COGNITO_URL",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/cognito/url"
+                }
+            ],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -38,7 +50,7 @@
     "family": "quemistry-auth-ms",
     "executionRoleArn": "arn:aws:iam::730335183958:role/EcsFargateExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 5,
+    "revision": 10,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -59,6 +71,9 @@
         },
         {
             "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "ecs.capability.secrets.ssm.environment-variables"
         },
         {
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
