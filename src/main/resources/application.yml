@@ -1,14 +1,20 @@
 spring:
   application:
     name: auth_ms
+
   data:
     redis:
-      host: clustercfg.quemistry.vrbbrp.apse1.cache.amazonaws.com
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  docker:
+    compose:
+      enabled: false
 
 server:
   port: 80
 
 quemistry:
   cognito:
-    url: https://quemistry.auth.ap-southeast-1.amazoncognito.com
+    url: ${COGNITO_URL}
+  session:
+    timeout: 86400
