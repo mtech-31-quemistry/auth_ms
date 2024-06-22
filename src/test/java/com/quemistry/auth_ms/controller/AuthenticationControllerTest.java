@@ -1,6 +1,7 @@
 package com.quemistry.auth_ms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quemistry.auth_ms.model.SignOutRequest;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.BDDMockito.given;
@@ -68,16 +70,20 @@ public class AuthenticationControllerTest {
 
     @Test
     void givenSignOut_Success() throws Exception{
+        SignOutRequest signOutRequest = new SignOutRequest();
+        signOutRequest.setClientId("testClientId");
 
+        doNothing().when(authenticationService).signOut(user.getSessionId(), signOutRequest.getClientId());
         ObjectMapper mapper = new ObjectMapper();
 
         jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("QUESESSION",mapper.writeValueAsString(tokenResponse) );
         cookie.setHttpOnly(true);
         cookie.setPath("/");
 
-            mockMvc.perform(post("/v1/auth/signout")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .cookie(cookie))
-                    .andExpect(status().isOk());
+        mockMvc.perform(post("/v1/auth/signout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .cookie(cookie)
+                        .content(mapper.writeValueAsString(signOutRequest)))
+                .andExpect(status().isOk());
     }
 }

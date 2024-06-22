@@ -85,4 +85,23 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         //store token in redis cache
     }
 
+    @Override
+    public void signOut(String sessionId, String clientId) {
+        final String tokenUri = "https://quemistry.auth.ap-southeast-1.amazoncognito.com/oauth2/revoke";
+        var tokens = ((TokenResponse) redisTemplate.opsForValue().getAndDelete(sessionId + "_tokens"));
+        if(tokens != null) {
+            redisTemplate.opsForValue().getAndDelete(sessionId + "_profile");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", MediaType.APPLICATION_FORM_URLENCODED.toString());
+
+            MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+            formData.add("token", tokens.getRefreshToken());
+            formData.add("client_id", clientId);
+            HttpEntity<MultiValueMap<String, String>> formEntity = new HttpEntity<>(formData, headers);
+
+            restTemplate.postForEntity(tokenUri, formEntity, String.class );
+        }
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.quemistry.auth_ms.controller;
 
+import com.quemistry.auth_ms.model.SignOutRequest;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.UserProfile;
 import com.quemistry.auth_ms.service.AuthenticationService;
@@ -49,9 +50,9 @@ public class AuthenticationController {
     }
 
     @PostMapping("signout")
-    public ResponseEntity signOut(@CookieValue("QUESESSION") String cookie){
-        System.out.println(cookie);
-
+    public ResponseEntity signOut(@CookieValue("QUESESSION") String cookie,@RequestBody SignOutRequest signOutRequest){
+        authenticationService.signOut(cookie, signOutRequest.getClientId());
+        //expire cookie
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=0; Path=/; HttpOnly;",""));
 
