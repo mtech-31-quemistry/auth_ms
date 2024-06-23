@@ -19,6 +19,7 @@ import java.util.UUID;
 
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.BDDMockito.given;
 @WebMvcTest(AuthenticationController.class)
@@ -51,6 +52,11 @@ public class AuthenticationControllerTest {
         user.setEmail("testUser@email.com");
         user.setSessionId(UUID.randomUUID().toString());
     }
+
+    @Test
+    void givenHealth_Success() throws Exception{
+        mockMvc.perform(get("/v1/auth/health")).andExpect(status().isOk());
+    }
     @Test
     void givenGetAccessToken_Success() throws Exception{
 
@@ -69,6 +75,18 @@ public class AuthenticationControllerTest {
     }
 
     @Test
+    void givenGetAccessToken_Fails() throws Exception{
+
+        given(authenticationService.getAccessToken(tokenRequest)).willReturn(null);
+        ObjectMapper mapper = new ObjectMapper();
+
+        mockMvc.perform(post("/v1/auth")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(tokenRequest)))
+                .andExpect(status().isBadRequest())
+                .andReturn();
+    }
+    @Test
     void givenSignOut_Success() throws Exception{
         SignOutRequest signOutRequest = new SignOutRequest();
         signOutRequest.setClientId("testClientId");
@@ -80,10 +98,13 @@ public class AuthenticationControllerTest {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
 
-        mockMvc.perform(post("/v1/auth/signout")
+        var result = mockMvc.perform(post("/v1/auth/signout")
                         .contentType(MediaType.APPLICATION_JSON)
                         .cookie(cookie)
                         .content(mapper.writeValueAsString(signOutRequest)))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andReturn();
+        var setCookieHeader = result.getResponse().getHeader("Set-Cookie");
+        Assertions.assertNotNull(setCookieHeader);
     }
 }

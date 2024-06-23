@@ -27,7 +27,7 @@ public class AuthenticationController {
     }
 
     @GetMapping("health")
-    public ResponseEntity health(){
+    public ResponseEntity<Object> health(){
         Map<String, String> responseBody = new HashMap<>();
         responseBody.put("service", "auth");
         responseBody.put("status", "UP");
@@ -39,18 +39,18 @@ public class AuthenticationController {
     public ResponseEntity<UserProfile> getAccess(@RequestBody TokenRequest request){
         UserProfile userProfile = authenticationService.getAccessToken(request);
 
-         //create cookie and return code with cookie session
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=%s; Path=/; HttpOnly;",userProfile.getSessionId(),sessionTimeout));
-
         if(userProfile == null)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+
+        //create cookie and return code with cookie session
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=%s; Path=/; HttpOnly;",userProfile.getSessionId(),sessionTimeout));
 
          return ResponseEntity.status(HttpStatus.OK).headers(headers).body(userProfile);
     }
 
     @PostMapping("signout")
-    public ResponseEntity signOut(@CookieValue("QUESESSION") String cookie,@RequestBody SignOutRequest signOutRequest){
+    public ResponseEntity<String> signOut(@CookieValue("QUESESSION") String cookie,@RequestBody SignOutRequest signOutRequest){
         authenticationService.signOut(cookie, signOutRequest.getClientId());
         //expire cookie
         HttpHeaders headers = new HttpHeaders();

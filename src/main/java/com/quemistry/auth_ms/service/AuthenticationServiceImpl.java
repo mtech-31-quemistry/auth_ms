@@ -23,8 +23,8 @@ import java.util.UUID;
 @Slf4j
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    @Value("${quemistry.cognito.url}")
-    private String QUEMISTRY_COGNITO_URL;
+    //@Value("${quemistry.cognito.url}")
+    //private String QUEMISTRY_COGNITO_URL;
 
     @Value("${quemistry.session.timeout}")
     private int SESSION_TIMEOUT;
