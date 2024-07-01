@@ -5,7 +5,7 @@ on:
     branches:
       - main
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 
 permissions: write-all
 
@@ -19,7 +19,6 @@ env:
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
   IMAGE_NAME: ${{ secrets.ECR_REPOSITORY_URL }}:${{ github.sha }}
   LATEST_IMAGE_NAME: ${{ secrets.ECR_REPOSITORY_URL }}:latest
-  API_GATEWAY_URL: ${{ secrets.API_GATEWAY_URL }}
 
 jobs:
   tests:
@@ -29,15 +28,15 @@ jobs:
       # checkout the codes
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "temurin"
+          java-version: '21'
+          distribution: 'temurin'
           check-latest: true
-          cache: "gradle"
+          cache: 'gradle'
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -118,15 +117,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
-          distribution: "temurin"
+          java-version: '21'
+          distribution: 'temurin'
           check-latest: true
-          cache: "gradle"
+          cache: 'gradle'
 
       - name: Cache Gradle packages
         uses: actions/cache@v4
@@ -148,7 +147,7 @@ jobs:
       - name: Get SonarCloud quality gate status
         run: |
           STATUS=$(curl -s -u "${{ env.SONAR_TOKEN }}": "https://sonarcloud.io/api/qualitygates/project_status?projectKey=${{ env.PROJECT_KEY }}" | jq -r .projectStatus.status)
-          echo "Quality gate status is $STATUS"
+          echo "Quality gate status is $STATUS"   
           if [[ "$STATUS" != "OK" ]]; then
           echo "Quality gate failed"
             exit 1
