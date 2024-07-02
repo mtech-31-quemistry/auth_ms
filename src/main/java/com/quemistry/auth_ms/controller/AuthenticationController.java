@@ -52,7 +52,7 @@ public class AuthenticationController {
     @PostMapping("signout")
     public ResponseEntity<String> signOut(@CookieValue("QUESESSION") String cookie,@RequestBody SignOutRequest signOutRequest){
         authenticationService.signOut(cookie, signOutRequest.getClientId());
-        //expire cookie
+        //expire cookie to remove from session
         HttpHeaders headers = new HttpHeaders();
         headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=0; Path=/; HttpOnly;",""));
 
