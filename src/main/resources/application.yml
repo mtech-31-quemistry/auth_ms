@@ -6,6 +6,8 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      ssl:
+        enabled: true
   docker:
     compose:
       enabled: false
