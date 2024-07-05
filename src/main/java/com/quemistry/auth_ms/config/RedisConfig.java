@@ -23,7 +23,7 @@ public class RedisConfig {
     @Bean
     public RedisConnectionFactory lettuceConnectionFactory(){
        var clientConfig = LettuceClientConfiguration.builder().useSsl().build();
-       return new LettuceConnectionFactory((new RedisStandaloneConfiguration(host, port)),clientConfig);
+       return new LettuceConnectionFactory((new RedisStandaloneConfiguration("clustercfg.quesmistry-redis.vrbbrp.apse1.cache.amazonaws.com", 6379)),clientConfig);
    }
 
    //@Bean
