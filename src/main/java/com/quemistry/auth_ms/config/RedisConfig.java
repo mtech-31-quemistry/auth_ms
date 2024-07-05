@@ -1,5 +1,6 @@
 package com.quemistry.auth_ms.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -13,10 +14,16 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 public class RedisConfig {
 
-   @Bean
+    @Value("${spring.data.redis.host}")
+    private String host;
+
+    @Value("${spring.data.redis.port}")
+    private int port;
+
+    @Bean
     public RedisConnectionFactory lettuceConnectionFactory(){
        var clientConfig = LettuceClientConfiguration.builder().useSsl().build();
-       return new LettuceConnectionFactory((new RedisStandaloneConfiguration()),clientConfig);
+       return new LettuceConnectionFactory((new RedisStandaloneConfiguration(host, port)),clientConfig);
    }
 
    //@Bean

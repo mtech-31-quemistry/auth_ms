@@ -11,7 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.*;
@@ -20,10 +22,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.lang.reflect.Field;
 import java.util.UUID;
 
-@WebMvcTest(AuthenticationService.class)
+//@WebMvcTest(AuthenticationService.class)
 @ContextConfiguration(classes = {RestClientConfig.class, RedisConfig.class})
+@SpringBootTest(properties = {
+        "spring.data.redis.port=6379",
+        "spring.data.redis.host=localhost"})
 public class AuthenticationServiceImplTest {
 
     //@Value("${quemistry.cognito.url}")
@@ -46,7 +52,7 @@ public class AuthenticationServiceImplTest {
 
     private String idToken;
     @BeforeEach
-    void init(){
+    void init() throws NoSuchFieldException, IllegalAccessException {
         user = new UserProfile();
         user.setEmail("testUser@email.com");
         user.setSessionId(UUID.randomUUID().toString());
