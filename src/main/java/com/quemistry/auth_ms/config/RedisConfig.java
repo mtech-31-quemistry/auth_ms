@@ -14,16 +14,23 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 public class RedisConfig {
 
-    @Value("${spring.data.redis.host}")
-    private String host;
 
-    @Value("${spring.data.redis.port}")
-    private int port;
+    private final String host;
+
+
+    private final int port;
+
+    public RedisConfig(
+            @Value("${spring.data.redis.host}") String host,
+            @Value("${spring.data.redis.port}") int port) {
+        this.host = host;
+        this.port = port;
+    }
 
     @Bean
     public RedisConnectionFactory lettuceConnectionFactory(){
        var clientConfig = LettuceClientConfiguration.builder().useSsl().build();
-       return new LettuceConnectionFactory((new RedisStandaloneConfiguration("clustercfg.quesmistry-redis.vrbbrp.apse1.cache.amazonaws.com", 6379)),clientConfig);
+       return new LettuceConnectionFactory((new RedisStandaloneConfiguration(this.host, this.port)),clientConfig);
    }
 
    //@Bean
