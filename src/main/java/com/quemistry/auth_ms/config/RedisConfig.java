@@ -33,12 +33,6 @@ public class RedisConfig {
        return new LettuceConnectionFactory((new RedisStandaloneConfiguration(this.host, this.port)),clientConfig);
    }
 
-   //@Bean
-   // public RedisConnectionFactory jedisConnectionFactory(){
-  //     var clientConfig = JedisClientConfiguration.builder().useSsl().build();
-  //     return new JedisConnectionFactory(new RedisStandaloneConfiguration(),clientConfig);
-  // }
-
     @Bean
     public RedisTemplate<String, Object> redisTemplate(){
         RedisTemplate<String, Object> template = new RedisTemplate<>();
