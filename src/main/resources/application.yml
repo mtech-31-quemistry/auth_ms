@@ -20,3 +20,6 @@ quemistry:
     url: ${COGNITO_URL}
   session:
     timeout: 86400
+  cors:
+    allowed:
+      origin: ${QUEMISTRY_CLIENT_WEB_URL}
