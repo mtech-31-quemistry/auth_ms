@@ -32,6 +32,10 @@
                 {
                     "name": "COGNITO_URL",
                     "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/cognito/url"
+                },
+                {
+                    "name": "QUEMISTRY_CLIENT_WEB_URL",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/webclient/url"
                 }
             ],
             "logConfiguration": {
