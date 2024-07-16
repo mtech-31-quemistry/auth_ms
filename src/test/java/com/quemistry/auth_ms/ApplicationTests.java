@@ -8,6 +8,7 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = {
 		"REDIS_HOST=testValue",
 		"REDIS_PORT=123",
+		"REDIS_ENABLE_SSL=false",
 		"COGNITO_URL=testValue",
 		"QUEMISTRY_CLIENT_WEB_URL=http://localhost:3000"
 })

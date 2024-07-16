@@ -1,10 +1,7 @@
 package com.quemistry.auth_ms.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.quemistry.auth_ms.model.SignOutRequest;
-import com.quemistry.auth_ms.model.TokenRequest;
-import com.quemistry.auth_ms.model.TokenResponse;
-import com.quemistry.auth_ms.model.UserProfile;
+import com.quemistry.auth_ms.model.*;
 import com.quemistry.auth_ms.service.AuthenticationService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,5 +103,26 @@ public class AuthenticationControllerTest {
                 .andReturn();
         var setCookieHeader = result.getResponse().getHeader("Set-Cookie");
         Assertions.assertNotNull(setCookieHeader);
+    }
+
+    @Test
+    void givenisAuthorised_Success() throws Exception{
+        var request = new IsAuthorisedRequest();
+        request.setRole("teacher");
+        request.setPath("/questions");
+        request.setMethod("GET");
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        given(authenticationService.checkAccess(request.getRole(), request.getPath(), request.getMethod()))
+                .willReturn(true);
+
+        var result = mockMvc.perform(post("/v1/auth/isauthorised")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Assertions.assertEquals("true", result.getResponse().getContentAsString());
     }
 }

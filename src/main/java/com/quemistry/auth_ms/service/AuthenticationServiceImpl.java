@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
+import com.quemistry.auth_ms.repository.RoleRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -33,9 +34,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    public AuthenticationServiceImpl(RestTemplate restTemplate, RedisTemplate<String, Object> redisTemplate) {
+    private final RoleRepository roleRepository;
+
+    public AuthenticationServiceImpl(RestTemplate restTemplate, RedisTemplate<String, Object> redisTemplate
+    , RoleRepository roleRepository) {
         this.restTemplate = restTemplate;
         this.redisTemplate = redisTemplate;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -102,6 +107,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             restTemplate.postForEntity(tokenUri, formEntity, String.class );
         }
+    }
+
+    @Override
+    public Boolean checkAccess(String roleName, String path, String method) {
+        //get role
+        var teacher = roleRepository.findByName(roleName);
+        if(teacher.isPresent()){
+            var grantedWith = teacher.get().getGrantedWith();
+            if(grantedWith.stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
+                                            && granted.getMethod().compareToIgnoreCase(method) ==0))
+                return true;
+        }
+        return false;
     }
 
 }

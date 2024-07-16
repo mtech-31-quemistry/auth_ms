@@ -3,6 +3,7 @@ package com.quemistry.auth_ms.controller;
 import com.quemistry.auth_ms.model.SignOutRequest;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.UserProfile;
+import com.quemistry.auth_ms.model.IsAuthorisedRequest;
 import com.quemistry.auth_ms.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -57,5 +58,11 @@ public class AuthenticationController {
         headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=0; Path=/; HttpOnly;",""));
 
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(null);
+    }
+
+    @PostMapping("isauthorised")
+    public ResponseEntity<Boolean> isAuthorised(@RequestBody IsAuthorisedRequest request){
+        var result =authenticationService.checkAccess(request.getRole(), request.getPath(), request.getMethod());
+        return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }

@@ -17,10 +17,25 @@
                 }
             ],
             "essential": true,
-            "environment": [],
+            "environment": [{
+                "name":"REDIS_ENABLE_SSL",
+                "value":"true"
+            }],
             "mountPoints": [],
             "volumesFrom": [],
             "secrets": [
+                {
+                    "name": "DB_URL",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/postgre/database/url"
+                },
+                {
+                    "name": "DB_USER",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/postgre/database/auth-ms/username"
+                },
+                {
+                    "name": "DB_PASSWORD",
+                    "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/postgre/database/auth-ms/password"
+                },
                 {
                     "name": "REDIS_HOST",
                     "valueFrom": "arn:aws:ssm:ap-southeast-1:730335183958:parameter/cicd/prod/redis/url"

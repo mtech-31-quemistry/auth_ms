@@ -2,17 +2,18 @@ package com.quemistry.auth_ms.service;
 
 import com.quemistry.auth_ms.config.RedisConfig;
 import com.quemistry.auth_ms.config.RestClientConfig;
+import com.quemistry.auth_ms.entity.ApiResource;
+import com.quemistry.auth_ms.entity.Role;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
+import com.quemistry.auth_ms.repository.RoleRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -22,14 +23,17 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 //@WebMvcTest(AuthenticationService.class)
 @ContextConfiguration(classes = {RestClientConfig.class, RedisConfig.class})
 @SpringBootTest(properties = {
         "spring.data.redis.port=6379",
-        "spring.data.redis.host=localhost"})
+        "spring.data.redis.host=localhost",
+        "spring.data.redis.ssl.enabled=false"})
 public class AuthenticationServiceImplTest {
 
     //@Value("${quemistry.cognito.url}")
@@ -44,8 +48,12 @@ public class AuthenticationServiceImplTest {
     @Mock
     private ValueOperations valueOperations;
 
+    @Mock
+    private RoleRepository roleRepository;
+
     @InjectMocks
     private AuthenticationServiceImpl authenticationService;
+
 
     private TokenResponse tokenResponse;
     private UserProfile user;
@@ -53,6 +61,7 @@ public class AuthenticationServiceImplTest {
     private String idToken;
     @BeforeEach
     void init() throws NoSuchFieldException, IllegalAccessException {
+
         user = new UserProfile();
         user.setEmail("testUser@email.com");
         user.setSessionId(UUID.randomUUID().toString());
@@ -118,4 +127,39 @@ public class AuthenticationServiceImplTest {
         authenticationService.signOut(user.getSessionId(), "testClientId");
     }
 
+    @Test
+    void givenCheckAccess_Success(){
+        Set<ApiResource> grantedWith = new HashSet<>();
+        var apiResource = new ApiResource();
+        apiResource.setPath("/questions");
+        apiResource.setMethod("GET");
+
+        grantedWith.add(apiResource);
+        var role = new Role();
+        role.setName("teacher");
+        role.setGrantedWith(grantedWith);
+
+        Mockito.when(roleRepository.findByName("teacher")).thenReturn(Optional.of(role));
+        var result = authenticationService.checkAccess("teacher", "/questions", "GET");
+
+        Assertions.assertEquals(result, true);
+    }
+
+    @Test
+    void givenCheckAccess_DenyAccess(){
+        Set<ApiResource> grantedWith = new HashSet<>();
+        var apiResource = new ApiResource();
+        apiResource.setPath("/questions");
+        apiResource.setMethod("GET");
+
+        grantedWith.add(apiResource);
+        var role = new Role();
+        role.setName("teacher");
+        role.setGrantedWith(grantedWith);
+
+        Mockito.when(roleRepository.findByName("teacher")).thenReturn(Optional.of(role));
+        var result = authenticationService.checkAccess("teacher", "/questions", "POST");
+
+        Assertions.assertEquals(result, false);
+    }
 }
