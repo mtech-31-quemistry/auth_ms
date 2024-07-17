@@ -16,6 +16,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
@@ -69,10 +70,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             ObjectMapper mapper = new ObjectMapper();
             try {
                 Map<String, Object> map = mapper.readValue(payload, new TypeReference<>() {});
+
                 //creates session id as key and store user profile and access tokens info in redis
                 user = new UserProfile();
                 user.setSessionId(UUID.randomUUID().toString());
                 user.setEmail((String)map.get("email"));
+                var useRoles = (ArrayList<Object>)map.get("cognito:groups");
+                if(useRoles != null) {
+                    var roles = useRoles.toArray(new String[useRoles.size()]);
+                    user.setRoles(roles);
+                }
 
                 redisTemplate.opsForValue().set(user.getSessionId()+"_profile", user, Duration.ofSeconds(SESSION_TIMEOUT));
                 redisTemplate.opsForValue().set(user.getSessionId()+"_tokens", response.getBody(), Duration.ofSeconds(SESSION_TIMEOUT));
@@ -112,9 +119,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Boolean checkAccess(String roleName, String path, String method) {
         //get role
-        var teacher = roleRepository.findByName(roleName);
-        if(teacher.isPresent()){
-            var grantedWith = teacher.get().getGrantedWith();
+        var role = roleRepository.findByName(roleName);
+        if(role.isPresent()){
+            var grantedWith = role.get().getGrantedWith();
             if(grantedWith.stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
                                             && granted.getMethod().compareToIgnoreCase(method) ==0))
                 return true;
@@ -122,4 +129,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return false;
     }
 
+    @Override
+    public Boolean checkUserSessionAccess(String sessionId, String path, String method) {
+        //get user profile role
+        var profile = ((UserProfile) redisTemplate.opsForValue().get(sessionId + "_profile"));
+        if(profile == null)
+            return false;
+
+        //get role
+        var roles = roleRepository.findByNames(profile.getRoles());
+        if(roles.stream().anyMatch(role ->
+            role.getGrantedWith().stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
+                    && granted.getMethod().compareToIgnoreCase(method) == 0))){
+            return true;
+        }
+        return false;
+    }
 }

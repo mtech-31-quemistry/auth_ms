@@ -108,7 +108,7 @@ public class AuthenticationControllerTest {
     @Test
     void givenisAuthorised_Success() throws Exception{
         var request = new IsAuthorisedRequest();
-        request.setRole("teacher");
+        request.setRole("tutor");
         request.setPath("/questions");
         request.setMethod("GET");
 
@@ -120,6 +120,27 @@ public class AuthenticationControllerTest {
         var result = mockMvc.perform(post("/v1/auth/isauthorised")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Assertions.assertEquals("true", result.getResponse().getContentAsString());
+    }
+
+    @Test
+    void givenisAuthorisedUser_Success() throws Exception{
+        var request = new IsAuthorisedRequest();
+        request.setRole("tutor");
+        request.setPath("/questions");
+        request.setMethod("GET");
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        given(authenticationService.checkUserSessionAccess(request.getSessionId(), request.getPath(), request.getMethod()))
+                .willReturn(true);
+
+        var result = mockMvc.perform(post("/v1/auth/isauthoriseduser")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andReturn();
 

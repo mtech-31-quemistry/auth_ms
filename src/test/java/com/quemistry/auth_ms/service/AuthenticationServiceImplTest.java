@@ -23,10 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 //@WebMvcTest(AuthenticationService.class)
 @ContextConfiguration(classes = {RestClientConfig.class, RedisConfig.class})
@@ -64,10 +61,11 @@ public class AuthenticationServiceImplTest {
 
         user = new UserProfile();
         user.setEmail("testUser@email.com");
+        user.setRoles(new String[]{"tutor", "admin"});
         user.setSessionId(UUID.randomUUID().toString());
 
         //idtoken with email set as testUser@email.com
-        idToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJlbWFpbCI6InRlc3RVc2VyQGVtYWlsLmNvbSJ9.cI8ybuRu1FP7_jR9-mHuS2w9EBVueQRMR5DeF2C3pWc";
+        idToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdF9oYXNoIjoidThRdnNKdFY1TXRETFdodF9xQmFpZyIsInN1YiI6ImM5YWFkNTRjLTYwZTEtNzA0NS1lNzEyLTlhZDFkYTczZjg3YSIsImNvZ25pdG86Z3JvdXBzIjpbInR1dG9yIiwiYWRtaW4iXSwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLmFwLXNvdXRoZWFzdC0xLmFtYXpvbmF3cy5jb20vYXAtc291dGhlYXN0LTFfWmIwSmwwN1dzIiwiY29nbml0bzp1c2VybmFtZSI6Imdvb2dsZV8xMDQwMjk0OTE2Njc5NjE1ODg4NDAiLCJvcmlnaW5fanRpIjoiYTY1M2ExMDEtNTUyMi00ZDIyLTk1NzctZGZkZjA4ZDM5NDc4IiwiYXVkIjoiMXEzMHZtZDB2Y2VlNmsxbHJwMmluMTA2MjMiLCJpZGVudGl0aWVzIjpbeyJkYXRlQ3JlYXRlZCI6IjE3MTcyNTI0Mzk3MDMiLCJ1c2VySWQiOiIxMDQwMjk0OTE2Njc5NjE1ODg4NDAiLCJwcm92aWRlck5hbWUiOiJHb29nbGUiLCJwcm92aWRlclR5cGUiOiJHb29nbGUiLCJpc3N1ZXIiOm51bGwsInByaW1hcnkiOiJ0cnVlIn1dLCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTcyMTE0MDE3NywiZXhwIjoxNzIxMTQxMDc3LCJpYXQiOjE3MjExNDAxNzcsImp0aSI6IjU5YjlkZmZlLWFkMjItNDMyZC05ZWIxLTRiZmVhYjFhOGY4MyIsImVtYWlsIjoidGVzdFVzZXJAZW1haWwuY29tIn0.HabZEsulPCsu-IYRE_G42RUWo0k5jMJqYSxJx_QgtuY";
         tokenResponse = new TokenResponse();
         tokenResponse.setIdToken(idToken);
         tokenResponse.setAccessToken("testAccessToken");
@@ -105,8 +103,11 @@ public class AuthenticationServiceImplTest {
 
         var result = authenticationService.getAccessToken(tokenRequest);
         tokenResponse.setEmail("testUser@email.com");
+
         Assertions.assertEquals(user.getEmail(), result.getEmail() );
-    }
+       Assertions.assertEquals(user.getRoles().length, result.getRoles().length );
+
+   }
 
     @Test
     void givenSignOut_Success(){
@@ -136,11 +137,11 @@ public class AuthenticationServiceImplTest {
 
         grantedWith.add(apiResource);
         var role = new Role();
-        role.setName("teacher");
+        role.setName("tutor");
         role.setGrantedWith(grantedWith);
 
-        Mockito.when(roleRepository.findByName("teacher")).thenReturn(Optional.of(role));
-        var result = authenticationService.checkAccess("teacher", "/questions", "GET");
+        Mockito.when(roleRepository.findByName("tutor")).thenReturn(Optional.of(role));
+        var result = authenticationService.checkAccess("tutor", "/questions", "GET");
 
         Assertions.assertEquals(result, true);
     }
@@ -154,11 +155,86 @@ public class AuthenticationServiceImplTest {
 
         grantedWith.add(apiResource);
         var role = new Role();
-        role.setName("teacher");
+        role.setName("tutor");
         role.setGrantedWith(grantedWith);
 
-        Mockito.when(roleRepository.findByName("teacher")).thenReturn(Optional.of(role));
-        var result = authenticationService.checkAccess("teacher", "/questions", "POST");
+        Mockito.when(roleRepository.findByName(role.getName())).thenReturn(Optional.of(role));
+        var result = authenticationService.checkAccess("tutor", "/questions", "POST");
+
+        Assertions.assertEquals(result, false);
+    }
+
+    @Test
+    void givencheckUserSessionAccess_Success(){
+        Set<ApiResource> grantedWith = new HashSet<>();
+        var apiResource = new ApiResource();
+        apiResource.setPath("/questions");
+        apiResource.setMethod("GET");
+
+        grantedWith.add(apiResource);
+        var role = new Role();
+        role.setName("tutor");
+        role.setGrantedWith(grantedWith);
+
+        var roles = new ArrayList<Role>();
+        roles.add(role);
+
+        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_profile"))
+                .thenReturn(user);
+
+        Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
+        var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "GET");
+
+        Assertions.assertEquals(result, true);
+    }
+
+    @Test
+    void givencheckUserSessionAccess_InValidSession(){
+        Set<ApiResource> grantedWith = new HashSet<>();
+        var apiResource = new ApiResource();
+        apiResource.setPath("/questions");
+        apiResource.setMethod("GET");
+
+        grantedWith.add(apiResource);
+        var role = new Role();
+        role.setName("tutor");
+        role.setGrantedWith(grantedWith);
+
+        var roles = new ArrayList<Role>();
+        roles.add(role);
+
+        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_profile"))
+                .thenReturn(null);
+
+        Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
+        var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "GET");
+
+        Assertions.assertEquals(result, false);
+    }
+
+    @Test
+    void givencheckUserSessionAccess_NoAccess(){
+        Set<ApiResource> grantedWith = new HashSet<>();
+        var apiResource = new ApiResource();
+        apiResource.setPath("/questions");
+        apiResource.setMethod("GET");
+
+        grantedWith.add(apiResource);
+        var role = new Role();
+        role.setName("tutor");
+        role.setGrantedWith(grantedWith);
+
+        var roles = new ArrayList<Role>();
+        roles.add(role);
+
+        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_profile"))
+                .thenReturn(null);
+
+        Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
+        var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "POST");
 
         Assertions.assertEquals(result, false);
     }

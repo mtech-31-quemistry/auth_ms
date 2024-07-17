@@ -12,4 +12,5 @@ public class IsAuthorisedRequest {
     private String role;
     private String path;
     private String method;
+    private String sessionId;
 }

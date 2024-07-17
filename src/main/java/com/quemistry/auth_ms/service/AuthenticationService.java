@@ -9,4 +9,6 @@ public interface AuthenticationService {
     void signOut(String sessionId, String clientId);
 
     Boolean checkAccess(String roleName, String path, String method);
+
+    Boolean checkUserSessionAccess(String sessionId, String path, String method);
 }
