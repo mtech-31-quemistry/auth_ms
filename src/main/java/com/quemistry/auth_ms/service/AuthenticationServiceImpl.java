@@ -15,6 +15,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.rmi.ServerException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -64,7 +65,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if(response.getStatusCode() == HttpStatus.OK){
             var idToken = response.getBody().getIdToken();
-            String[] chunks = idToken.split("\\.");
+            String[] chunks = (idToken == null) ? null : idToken.split("\\.");
+            if(chunks == null || chunks.length < 3) {
+                log.error("Invalid response from Idp Cognito.");
+            }
             Base64.Decoder decoder = Base64.getUrlDecoder();
             String payload = new String(decoder.decode(chunks[1]));
             ObjectMapper mapper = new ObjectMapper();
@@ -134,10 +138,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         //get user profile role
         var profile = ((UserProfile) redisTemplate.opsForValue().get(sessionId + "_profile"));
         if(profile == null)
+        {
+            log.debug("checkUserSessionAccess: session not found");
             return false;
-
+        }else{
+            log.debug("checkUserSessionAccess: found. With roles:"+ String.join(";",profile.getRoles()));
+        }
         //get role
         var roles = roleRepository.findByNames(profile.getRoles());
+        if(roles.size() == 0){
+            log.info("checkUserSessionAccess: roles does missing in data store.");
+        }
+        else{
+            StringBuilder rolesFound = new StringBuilder();
+            roles.forEach(role -> rolesFound.append(role.getName()+";"));
+            log.debug("checkUserSessionAccess: "+rolesFound);
+        }
         if(roles.stream().anyMatch(role ->
             role.getGrantedWith().stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
                     && granted.getMethod().compareToIgnoreCase(method) == 0))){

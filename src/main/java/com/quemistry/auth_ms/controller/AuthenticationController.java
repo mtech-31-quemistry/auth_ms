@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.quemistry.auth_ms.constant.Auth.COOKIE_NAME;
+
 @RestController
 @RequestMapping("/v1/auth")
 public class AuthenticationController {
@@ -45,17 +47,17 @@ public class AuthenticationController {
 
         //create cookie and return code with cookie session
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=%s; Path=/; HttpOnly;",userProfile.getSessionId(),sessionTimeout));
+        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=%s; Path=/; HttpOnly;", COOKIE_NAME, userProfile.getSessionId(),sessionTimeout));
 
          return ResponseEntity.status(HttpStatus.OK).headers(headers).body(userProfile);
     }
 
     @PostMapping("signout")
-    public ResponseEntity<String> signOut(@CookieValue("QUESESSION") String cookie,@RequestBody SignOutRequest signOutRequest){
+    public ResponseEntity<String> signOut(@CookieValue(COOKIE_NAME) String cookie, @RequestBody SignOutRequest signOutRequest){
         authenticationService.signOut(cookie, signOutRequest.getClientId());
         //expire cookie to remove from session
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("QUESESSION=%s; Max-Age=0; Path=/; HttpOnly;",""));
+        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=0; Path=/; HttpOnly;", COOKIE_NAME,""));
 
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(null);
     }

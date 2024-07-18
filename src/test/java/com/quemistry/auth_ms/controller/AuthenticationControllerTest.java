@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static com.quemistry.auth_ms.constant.Auth.COOKIE_NAME;
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -91,7 +92,7 @@ public class AuthenticationControllerTest {
         doNothing().when(authenticationService).signOut(user.getSessionId(), signOutRequest.getClientId());
         ObjectMapper mapper = new ObjectMapper();
 
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("QUESESSION",mapper.writeValueAsString(tokenResponse) );
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie(COOKIE_NAME,mapper.writeValueAsString(tokenResponse) );
         cookie.setHttpOnly(true);
         cookie.setPath("/");
 

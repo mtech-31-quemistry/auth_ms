@@ -14,6 +14,6 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     Optional<Role> findByName(@Param("name") String name);
 
     @Query("select r from Role r left join fetch r.grantedWith where r.name in :names")
-    List<Role> findByNames(@Param("name") String[] names);
+    List<Role> findByNames(@Param("names") String[] names);
 }
 
