@@ -139,10 +139,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var profile = ((UserProfile) redisTemplate.opsForValue().get(sessionId + "_profile"));
         if(profile == null)
         {
-            log.debug("checkUserSessionAccess: session not found");
+            log.info("checkUserSessionAccess: session not found");
             return false;
         }else{
-            log.debug("checkUserSessionAccess: found. With roles:"+ String.join(";",profile.getRoles()));
+            log.info("checkUserSessionAccess: found. With roles:"+ String.join(";",profile.getRoles()));
         }
         //get role
         var roles = roleRepository.findByNames(profile.getRoles());
@@ -152,7 +152,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         else{
             StringBuilder rolesFound = new StringBuilder();
             roles.forEach(role -> rolesFound.append(role.getName()+";"));
-            log.debug("checkUserSessionAccess: "+rolesFound);
+            log.info("checkUserSessionAccess: "+rolesFound);
         }
         if(roles.stream().anyMatch(role ->
             role.getGrantedWith().stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0

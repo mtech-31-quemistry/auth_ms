@@ -46,7 +46,9 @@ server:
 
 logging:
   level:
-    root: DEBUG
+    root: WARN
+    org.springframework.web: DEBUG
+    hibernate: ERROR
 
 quemistry:
   cognito:
