@@ -15,7 +15,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.rmi.ServerException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -136,6 +135,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public Boolean checkUserSessionAccess(String sessionId, String path, String method) {
         //get user profile role
+        log.info("checkUserSessionAccess invoked");
         var profile = ((UserProfile) redisTemplate.opsForValue().get(sessionId + "_profile"));
         if(profile == null)
         {
