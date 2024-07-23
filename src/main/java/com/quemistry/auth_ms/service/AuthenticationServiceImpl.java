@@ -1,7 +1,6 @@
 package com.quemistry.auth_ms.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.quemistry.auth_ms.Util.JwtHelper;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
@@ -16,9 +15,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -64,25 +60,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if(response.getStatusCode() == HttpStatus.OK){
             var idToken = response.getBody().getIdToken();
-            String[] chunks = (idToken == null) ? null : idToken.split("\\.");
-            if(chunks == null || chunks.length < 3) {
-                log.error("Invalid response from Idp Cognito.");
-            }
-            Base64.Decoder decoder = Base64.getUrlDecoder();
-            String payload = new String(decoder.decode(chunks[1]));
-            ObjectMapper mapper = new ObjectMapper();
-            try {
-                Map<String, Object> map = mapper.readValue(payload, new TypeReference<>() {});
+            if(idToken == null)
+                return null;
 
+            try {
+                JwtHelper jwtIdToken = new JwtHelper(idToken);
+                if(!jwtIdToken.getValid()){
+                    log.error("Invalid Id token");
+                    return null;
+                }
                 //creates session id as key and store user profile and access tokens info in redis
                 user = new UserProfile();
                 user.setSessionId(UUID.randomUUID().toString());
-                user.setEmail((String)map.get("email"));
-                var useRoles = (ArrayList<Object>)map.get("cognito:groups");
-                if(useRoles != null) {
-                    var roles = useRoles.toArray(new String[useRoles.size()]);
-                    user.setRoles(roles);
-                }
+                user.setEmail(jwtIdToken.getEmail());
+                user.setRoles(jwtIdToken.getUserGroup());
 
                 redisTemplate.opsForValue().set(user.getSessionId()+"_profile", user, Duration.ofSeconds(SESSION_TIMEOUT));
                 redisTemplate.opsForValue().set(user.getSessionId()+"_tokens", response.getBody(), Duration.ofSeconds(SESSION_TIMEOUT));
@@ -133,16 +124,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Boolean checkUserSessionAccess(String sessionId, String path, String method) {
+    public String checkUserSessionAccess(String sessionId, String path, String method) {
         //get user profile role
         log.info("checkUserSessionAccess invoked");
+        String userId = "";
         var profile = ((UserProfile) redisTemplate.opsForValue().get(sessionId + "_profile"));
-        if(profile == null)
+        var tokens = ((TokenResponse) redisTemplate.opsForValue().get(sessionId + "_tokens"));
+        if(tokens == null || profile == null)
         {
             log.info("checkUserSessionAccess: session not found");
-            return false;
+            return "";
         }else{
             log.info("checkUserSessionAccess: found. With roles:"+ String.join(";",profile.getRoles()));
+            //check if user token has expired. If yes to refresh, asynchronously.
+            JwtHelper jwtAccessToken = new JwtHelper(tokens.getAccessToken());
+            userId = jwtAccessToken.getUserId();
         }
         //get role
         var roles = roleRepository.findByNames(profile.getRoles());
@@ -154,11 +150,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             roles.forEach(role -> rolesFound.append(role.getName()+";"));
             log.info("checkUserSessionAccess: "+rolesFound);
         }
-        if(roles.stream().anyMatch(role ->
+         if(roles.stream().anyMatch(role ->
             role.getGrantedWith().stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
                     && granted.getMethod().compareToIgnoreCase(method) == 0))){
-            return true;
+            return userId;
         }
-        return false;
+        return "";
     }
 }

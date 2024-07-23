@@ -137,7 +137,7 @@ public class AuthenticationControllerTest {
         ObjectMapper mapper = new ObjectMapper();
 
         given(authenticationService.checkUserSessionAccess(request.getSessionId(), request.getPath(), request.getMethod()))
-                .willReturn(true);
+                .willReturn("userid-test");
 
         var result = mockMvc.perform(post("/v1/auth/isauthoriseduser")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -145,6 +145,6 @@ public class AuthenticationControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        Assertions.assertEquals("true", result.getResponse().getContentAsString());
+        Assertions.assertEquals("userid-test", result.getResponse().getContentAsString());
     }
 }

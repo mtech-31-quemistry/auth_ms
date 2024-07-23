@@ -10,5 +10,5 @@ public interface AuthenticationService {
 
     Boolean checkAccess(String roleName, String path, String method);
 
-    Boolean checkUserSessionAccess(String sessionId, String path, String method);
+    String checkUserSessionAccess(String sessionId, String path, String method);
 }

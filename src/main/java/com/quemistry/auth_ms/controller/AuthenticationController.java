@@ -68,7 +68,7 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
     @PostMapping("isauthoriseduser")
-    public ResponseEntity<Boolean> isAuthorisedUser(@RequestBody IsAuthorisedRequest request){
+    public ResponseEntity<String> isAuthorisedUser(@RequestBody IsAuthorisedRequest request){
         var result =authenticationService.checkUserSessionAccess(request.getSessionId(), request.getPath(), request.getMethod());
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }

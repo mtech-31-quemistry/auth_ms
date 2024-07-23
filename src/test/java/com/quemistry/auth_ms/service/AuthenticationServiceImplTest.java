@@ -51,11 +51,10 @@ public class AuthenticationServiceImplTest {
     @InjectMocks
     private AuthenticationServiceImpl authenticationService;
 
-
     private TokenResponse tokenResponse;
     private UserProfile user;
 
-    private String idToken;
+    private final String UserId = "c9aad54c-60e1-7045-e712-9ad1da73f87a";
     @BeforeEach
     void init() throws NoSuchFieldException, IllegalAccessException {
 
@@ -65,11 +64,12 @@ public class AuthenticationServiceImplTest {
         user.setSessionId(UUID.randomUUID().toString());
 
         //idtoken with email set as testUser@email.com
-        idToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdF9oYXNoIjoidThRdnNKdFY1TXRETFdodF9xQmFpZyIsInN1YiI6ImM5YWFkNTRjLTYwZTEtNzA0NS1lNzEyLTlhZDFkYTczZjg3YSIsImNvZ25pdG86Z3JvdXBzIjpbInR1dG9yIiwiYWRtaW4iXSwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLmFwLXNvdXRoZWFzdC0xLmFtYXpvbmF3cy5jb20vYXAtc291dGhlYXN0LTFfWmIwSmwwN1dzIiwiY29nbml0bzp1c2VybmFtZSI6Imdvb2dsZV8xMDQwMjk0OTE2Njc5NjE1ODg4NDAiLCJvcmlnaW5fanRpIjoiYTY1M2ExMDEtNTUyMi00ZDIyLTk1NzctZGZkZjA4ZDM5NDc4IiwiYXVkIjoiMXEzMHZtZDB2Y2VlNmsxbHJwMmluMTA2MjMiLCJpZGVudGl0aWVzIjpbeyJkYXRlQ3JlYXRlZCI6IjE3MTcyNTI0Mzk3MDMiLCJ1c2VySWQiOiIxMDQwMjk0OTE2Njc5NjE1ODg4NDAiLCJwcm92aWRlck5hbWUiOiJHb29nbGUiLCJwcm92aWRlclR5cGUiOiJHb29nbGUiLCJpc3N1ZXIiOm51bGwsInByaW1hcnkiOiJ0cnVlIn1dLCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTcyMTE0MDE3NywiZXhwIjoxNzIxMTQxMDc3LCJpYXQiOjE3MjExNDAxNzcsImp0aSI6IjU5YjlkZmZlLWFkMjItNDMyZC05ZWIxLTRiZmVhYjFhOGY4MyIsImVtYWlsIjoidGVzdFVzZXJAZW1haWwuY29tIn0.HabZEsulPCsu-IYRE_G42RUWo0k5jMJqYSxJx_QgtuY";
+        String idToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdF9oYXNoIjoidThRdnNKdFY1TXRETFdodF9xQmFpZyIsInN1YiI6ImM5YWFkNTRjLTYwZTEtNzA0NS1lNzEyLTlhZDFkYTczZjg3YSIsImNvZ25pdG86Z3JvdXBzIjpbInR1dG9yIiwiYWRtaW4iXSwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJpc3MiOiJodHRwczovL2NvZ25pdG8taWRwLmFwLXNvdXRoZWFzdC0xLmFtYXpvbmF3cy5jb20vYXAtc291dGhlYXN0LTFfWmIwSmwwN1dzIiwiY29nbml0bzp1c2VybmFtZSI6Imdvb2dsZV8xMDQwMjk0OTE2Njc5NjE1ODg4NDAiLCJvcmlnaW5fanRpIjoiYTY1M2ExMDEtNTUyMi00ZDIyLTk1NzctZGZkZjA4ZDM5NDc4IiwiYXVkIjoiMXEzMHZtZDB2Y2VlNmsxbHJwMmluMTA2MjMiLCJpZGVudGl0aWVzIjpbeyJkYXRlQ3JlYXRlZCI6IjE3MTcyNTI0Mzk3MDMiLCJ1c2VySWQiOiIxMDQwMjk0OTE2Njc5NjE1ODg4NDAiLCJwcm92aWRlck5hbWUiOiJHb29nbGUiLCJwcm92aWRlclR5cGUiOiJHb29nbGUiLCJpc3N1ZXIiOm51bGwsInByaW1hcnkiOiJ0cnVlIn1dLCJ0b2tlbl91c2UiOiJpZCIsImF1dGhfdGltZSI6MTcyMTE0MDE3NywiZXhwIjoxNzIxMTQxMDc3LCJpYXQiOjE3MjExNDAxNzcsImp0aSI6IjU5YjlkZmZlLWFkMjItNDMyZC05ZWIxLTRiZmVhYjFhOGY4MyIsImVtYWlsIjoidGVzdFVzZXJAZW1haWwuY29tIn0.HabZEsulPCsu-IYRE_G42RUWo0k5jMJqYSxJx_QgtuY";
+
         tokenResponse = new TokenResponse();
         tokenResponse.setIdToken(idToken);
-        tokenResponse.setAccessToken("testAccessToken");
-        tokenResponse.setAccessToken("testRefreshToken");
+        tokenResponse.setAccessToken(idToken);
+        tokenResponse.setRefreshToken("testRefreshToken");
         tokenResponse.setExpiresIn(120);
     }
 
@@ -101,10 +101,9 @@ public class AuthenticationServiceImplTest {
 
        Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
-        var result = authenticationService.getAccessToken(tokenRequest);
-        tokenResponse.setEmail("testUser@email.com");
+       var result = authenticationService.getAccessToken(tokenRequest);
 
-        Assertions.assertEquals(user.getEmail(), result.getEmail() );
+       Assertions.assertEquals(user.getEmail(), result.getEmail() );
        Assertions.assertEquals(user.getRoles().length, result.getRoles().length );
 
    }
@@ -182,11 +181,13 @@ public class AuthenticationServiceImplTest {
         Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_profile"))
                 .thenReturn(user);
+        Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_tokens"))
+                .thenReturn(tokenResponse);
 
         Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
         var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "GET");
 
-        Assertions.assertEquals(result, true);
+        Assertions.assertEquals(result, UserId);
     }
 
     @Test
@@ -207,11 +208,13 @@ public class AuthenticationServiceImplTest {
         Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_profile"))
                 .thenReturn(null);
+        Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_tokens"))
+                .thenReturn(null);
 
         Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
         var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "GET");
 
-        Assertions.assertEquals(result, false);
+        Assertions.assertEquals(result, "");
     }
 
     @Test
@@ -231,11 +234,13 @@ public class AuthenticationServiceImplTest {
 
         Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_profile"))
-                .thenReturn(null);
+                .thenReturn(user);
+        Mockito.when(redisTemplate.opsForValue().get(user.getSessionId()+"_tokens"))
+                .thenReturn(tokenResponse);
 
         Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
         var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "POST");
 
-        Assertions.assertEquals(result, false);
+        Assertions.assertEquals(result, "");
     }
 }
