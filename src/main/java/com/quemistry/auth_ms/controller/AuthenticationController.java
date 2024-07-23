@@ -1,9 +1,6 @@
 package com.quemistry.auth_ms.controller;
 
-import com.quemistry.auth_ms.model.SignOutRequest;
-import com.quemistry.auth_ms.model.TokenRequest;
-import com.quemistry.auth_ms.model.UserProfile;
-import com.quemistry.auth_ms.model.IsAuthorisedRequest;
+import com.quemistry.auth_ms.model.*;
 import com.quemistry.auth_ms.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -68,7 +65,7 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
     @PostMapping("isauthoriseduser")
-    public ResponseEntity<String> isAuthorisedUser(@RequestBody IsAuthorisedRequest request){
+    public ResponseEntity<IsAuthorisedUserResponse> isAuthorisedUser(@RequestBody IsAuthorisedRequest request){
         var result =authenticationService.checkUserSessionAccess(request.getSessionId(), request.getPath(), request.getMethod());
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }

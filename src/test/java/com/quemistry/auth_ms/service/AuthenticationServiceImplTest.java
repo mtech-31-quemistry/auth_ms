@@ -187,7 +187,9 @@ public class AuthenticationServiceImplTest {
         Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
         var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "GET");
 
-        Assertions.assertEquals(result, UserId);
+        Assertions.assertEquals(UserId, result.getUserId() );
+        Assertions.assertEquals(true, result.getIsAuthorised() );
+
     }
 
     @Test
@@ -214,7 +216,9 @@ public class AuthenticationServiceImplTest {
         Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
         var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "GET");
 
-        Assertions.assertEquals(result, "");
+        Assertions.assertEquals(false, result.getIsAuthorised());
+        Assertions.assertEquals(null, result.getUserId());
+
     }
 
     @Test
@@ -241,6 +245,8 @@ public class AuthenticationServiceImplTest {
         Mockito.when(roleRepository.findByNames(user.getRoles())).thenReturn(roles);
         var result = authenticationService.checkUserSessionAccess(user.getSessionId(), "/questions", "POST");
 
-        Assertions.assertEquals(result, "");
+        Assertions.assertEquals(UserId, result.getUserId());
+        Assertions.assertEquals(false, result.getIsAuthorised());
+
     }
 }

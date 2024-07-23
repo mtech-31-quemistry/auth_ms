@@ -1,6 +1,7 @@
 package com.quemistry.auth_ms.service;
 
 import com.quemistry.auth_ms.Util.JwtHelper;
+import com.quemistry.auth_ms.model.IsAuthorisedUserResponse;
 import com.quemistry.auth_ms.model.TokenRequest;
 import com.quemistry.auth_ms.model.TokenResponse;
 import com.quemistry.auth_ms.model.UserProfile;
@@ -124,24 +125,28 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String checkUserSessionAccess(String sessionId, String path, String method) {
+    public IsAuthorisedUserResponse checkUserSessionAccess(String sessionId, String path, String method) {
         //get user profile role
         log.info("checkUserSessionAccess invoked");
-        String userId = "";
+        IsAuthorisedUserResponse response = new IsAuthorisedUserResponse();
+        response.setIsAuthorised(false);
         var profile = ((UserProfile) redisTemplate.opsForValue().get(sessionId + "_profile"));
         var tokens = ((TokenResponse) redisTemplate.opsForValue().get(sessionId + "_tokens"));
+
         if(tokens == null || profile == null)
         {
             log.info("checkUserSessionAccess: session not found");
-            return "";
+            return response;
         }else{
             log.info("checkUserSessionAccess: found. With roles:"+ String.join(";",profile.getRoles()));
             //check if user token has expired. If yes to refresh, asynchronously.
             JwtHelper jwtAccessToken = new JwtHelper(tokens.getAccessToken());
-            userId = jwtAccessToken.getUserId();
+            response.setUserId(jwtAccessToken.getUserId());
         }
-        //get role
+        //get roles
         var roles = roleRepository.findByNames(profile.getRoles());
+
+        //debugging
         if(roles.size() == 0){
             log.info("checkUserSessionAccess: roles does missing in data store.");
         }
@@ -150,11 +155,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             roles.forEach(role -> rolesFound.append(role.getName()+";"));
             log.info("checkUserSessionAccess: "+rolesFound);
         }
-         if(roles.stream().anyMatch(role ->
+        //set is authosrised
+        response.setIsAuthorised(roles.stream().anyMatch(role ->
             role.getGrantedWith().stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
-                    && granted.getMethod().compareToIgnoreCase(method) == 0))){
-            return userId;
-        }
-        return "";
+                    && granted.getMethod().compareToIgnoreCase(method) == 0)));
+
+        return response;
     }
 }
