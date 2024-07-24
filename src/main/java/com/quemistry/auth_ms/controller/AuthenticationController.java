@@ -49,7 +49,7 @@ public class AuthenticationController {
         ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, userProfile.getSessionId())
                         .httpOnly(true).secure(true)
                         .path("/").maxAge(sessionTimeout)
-                        .sameSite(Cookie.SameSite.NONE.attributeValue())
+                        .sameSite(Cookie.SameSite.LAX.attributeValue())
                         .build();
 
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
