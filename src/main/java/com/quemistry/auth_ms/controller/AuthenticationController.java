@@ -3,8 +3,10 @@ package com.quemistry.auth_ms.controller;
 import com.quemistry.auth_ms.model.*;
 import com.quemistry.auth_ms.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.server.Cookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,10 +46,13 @@ public class AuthenticationController {
 
         //create cookie and return code with cookie session
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=%s; Path=/; HttpOnly; SameSite=Lax;"
-                                                            , COOKIE_NAME
-                                                            , userProfile.getSessionId()
-                                                            ,sessionTimeout));
+        ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, userProfile.getSessionId())
+                        .httpOnly(true).secure(true)
+                        .path("/").maxAge(sessionTimeout)
+                        .sameSite(Cookie.SameSite.NONE.attributeValue())
+                        .build();
+
+        headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
 
          return ResponseEntity.status(HttpStatus.OK).headers(headers).body(userProfile);
     }
@@ -57,7 +62,9 @@ public class AuthenticationController {
         authenticationService.signOut(cookie, signOutRequest.getClientId());
         //expire cookie to remove from session
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=0; Path=/; HttpOnly; SameSite=Lax;", COOKIE_NAME,""));
+        ResponseCookie deleteCookie = ResponseCookie.from(COOKIE_NAME, "").build();
+
+        headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(null);
     }
