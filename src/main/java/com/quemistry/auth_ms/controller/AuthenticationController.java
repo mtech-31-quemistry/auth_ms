@@ -44,11 +44,10 @@ public class AuthenticationController {
 
         //create cookie and return code with cookie session
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=%s; Domain=%s; Path=/; HttpOnly;"
+        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=%s; Path=/; HttpOnly; SameSite=Lax;"
                                                             , COOKIE_NAME
                                                             , userProfile.getSessionId()
-                                                            ,sessionTimeout
-                                                            , "dkraju438qs82.cloudfront.net"));
+                                                            ,sessionTimeout));
 
          return ResponseEntity.status(HttpStatus.OK).headers(headers).body(userProfile);
     }
@@ -58,7 +57,7 @@ public class AuthenticationController {
         authenticationService.signOut(cookie, signOutRequest.getClientId());
         //expire cookie to remove from session
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=0; Domain=%s; Path=/; HttpOnly;", COOKIE_NAME,"", "dkraju438qs82.cloudfront.net"));
+        headers.add("Set-Cookie", String.format("%s=%s; Max-Age=0; Path=/; HttpOnly; SameSite=Lax;", COOKIE_NAME,""));
 
         return ResponseEntity.status(HttpStatus.OK).headers(headers).body(null);
     }
