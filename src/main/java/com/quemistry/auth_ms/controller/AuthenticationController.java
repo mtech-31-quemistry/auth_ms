@@ -49,7 +49,7 @@ public class AuthenticationController {
         ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, userProfile.getSessionId())
                         .httpOnly(true).secure(true)
                         .path("/").maxAge(sessionTimeout)
-                        .sameSite(Cookie.SameSite.LAX.attributeValue())
+                        .sameSite(Cookie.SameSite.NONE.attributeValue())
                         .build();
 
         headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -62,7 +62,11 @@ public class AuthenticationController {
         authenticationService.signOut(cookie, signOutRequest.getClientId());
         //expire cookie to remove from session
         HttpHeaders headers = new HttpHeaders();
-        ResponseCookie deleteCookie = ResponseCookie.from(COOKIE_NAME, "").build();
+        ResponseCookie deleteCookie = ResponseCookie.from(COOKIE_NAME, "")
+                .httpOnly(true).secure(true)
+                .path("/").maxAge(0)
+                .sameSite(Cookie.SameSite.NONE.attributeValue())
+                .build();
 
         headers.add(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
