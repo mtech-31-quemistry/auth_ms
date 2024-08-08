@@ -117,7 +117,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var role = roleRepository.findByName(roleName);
         if(role.isPresent()){
             var grantedWith = role.get().getGrantedWith();
-            if(grantedWith.stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
+            if(grantedWith.stream().anyMatch(granted -> path.matches(granted.getPath())
                                             && granted.getMethod().compareToIgnoreCase(method) ==0))
                 return true;
         }
@@ -157,7 +157,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         //set is authosrised
         response.setIsAuthorised(roles.stream().anyMatch(role ->
-            role.getGrantedWith().stream().anyMatch(granted -> granted.getPath().compareToIgnoreCase(path) == 0
+            role.getGrantedWith().stream().anyMatch(granted -> path.matches(granted.getPath())
                     && granted.getMethod().compareToIgnoreCase(method) == 0)));
 
         return response;
