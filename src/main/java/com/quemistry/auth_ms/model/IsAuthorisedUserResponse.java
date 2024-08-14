@@ -10,4 +10,6 @@ import lombok.NoArgsConstructor;
 public class IsAuthorisedUserResponse {
     private Boolean isAuthorised;
     private String userId;
+    private String roles;
+    private String email;
 }

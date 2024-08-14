@@ -189,7 +189,8 @@ public class AuthenticationServiceImplTest {
 
         Assertions.assertEquals(UserId, result.getUserId() );
         Assertions.assertEquals(true, result.getIsAuthorised() );
-
+        Assertions.assertEquals(user.getEmail(), result.getEmail());
+        Assertions.assertEquals(String.join("|", user.getRoles()), result.getRoles());
     }
 
     @Test

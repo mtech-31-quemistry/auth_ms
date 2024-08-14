@@ -142,6 +142,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             //check if user token has expired. If yes to refresh, asynchronously.
             JwtHelper jwtAccessToken = new JwtHelper(tokens.getAccessToken());
             response.setUserId(jwtAccessToken.getUserId());
+            response.setEmail(profile.getEmail());
+            response.setRoles(String.join("|",profile.getRoles()));
         }
         //get roles
         var roles = roleRepository.findByNames(profile.getRoles());
